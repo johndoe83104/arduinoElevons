@@ -1,12 +1,16 @@
 #include <Servo.h>
 
-#define RANGE 120
+#define servoUpRange 120                     //
+#define servoDownRange 50
+#define servoMaxRange 70                     // Define maximum rage of motion for the servo, from 0 to 70 degrees
+#define servoMidRange 35                     // Define the midpoint of motion 
+#define servoMinRange 0                      // Define the midpoint of motion 
 
-Servo left;
-Servo right;
+Servo left;                                  // Create object for left servo
+Servo right;                                 // Create object for right servo
 
-word sensorValue1 = 0;    // lift row value
-word sensorValue2 = 0;    // roll raw value
+word sensorValue1 = 0;                       // Read raw value for up/down motion for elevons
+word sensorValue2 = 0;                       // Read raw value for roll, left/right motion for elevons
 byte lift = 0;       
 byte reverseLift = 0;
 byte roll = 0;        
@@ -16,32 +20,28 @@ byte rollLeft = 0;
 byte rollRight = 0;
 
 void setup() {
-  left.attach(9);
-  right.attach(10);
-  //Serial.begin(9600);
+  left.attach(9);                           // Attach servo to PWM pin 9
+  right.attach(6);                          // Attach servo to PWM pin 6
 }
 
 void loop() {
 
-  sensorValue1 = analogRead(A0);
-  sensorValue2 = analogRead(A1);
+  sensorValue1 = analogRead(A0);            // Read raw value from pot
+  sensorValue2 = analogRead(A1);            // reatd raw value from pot
 
-  lift = map(sensorValue1, 108, 925, 50, RANGE);
-  roll = map(sensorValue2, 164, 934, 0, 70);
-  reverseLift = map(sensorValue1, 108, 925, RANGE, 50);
+  lift = map(sensorValue1, 108, 925, servoDownRange, servoUpRange);                         // Map raw values from pots to 50-120
+  roll = map(sensorValue2, 164, 934, servoMinRange, servoMaxRange);                         // Map raw values from pots to 0-70
+  reverseLift = map(sensorValue1, 108, 925, servoUpRange, servoDownRange);
 
-  rollLeft = constrain(roll, 35, 70);
-  rollLeft = map(rollLeft, 35, 70, 0, 35);
-  rollRight = constrain(roll, 0, 35);
-  rollRight = map(rollRight, 0, 35, 35, 0);
+  rollLeft = constrain(roll, servoMidRange, servoMaxRange);
+  rollLeft = map(rollLeft, servoMidRange, servoMaxRange, servoMinRange, servoMidRange);
+  rollRight = constrain(roll, servoMinRange, servoMidRange);
+  rollRight = map(rollRight, servoMinRange, servoMidRange, servoMidRange, servoMinRange);
 
-  leftServo = constrain((lift-rollLeft+rollRight), 50, RANGE);
-  rightServo = constrain((reverseLift+rollRight-rollLeft), 50, RANGE);
+  leftServo = constrain((lift-rollLeft+rollRight), servoDownRange, servoUpRange);
+  rightServo = constrain((reverseLift+rollRight-rollLeft), servoDownRange, servoUpRange);
+  
   left.write(leftServo);
   right.write(rightServo);    
 
-  //Serial.print("sensor = ");
-  //Serial.print(sensorValue2);
-  //Serial.print("\t output = ");
-  //Serial.println(rollLeft);
 }
